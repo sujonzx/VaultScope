@@ -89,6 +89,52 @@ Live at: `https://concrete-analytics.vercel.app`
 
 ---
 
+## Dune Analytics integration
+
+The dashboard reads vault metrics, TVL history, and on-chain events from
+Dune queries. When a query ID or API key is missing the UI falls back to
+the bundled mock data for that slice.
+
+### 1. Set environment variables
+
+Copy `.env.example` → `.env` and fill in:
+
+```
+REACT_APP_DUNE_API_KEY=...
+REACT_APP_DUNE_QUERY_VAULTS=<query id>
+REACT_APP_DUNE_QUERY_TVL_HISTORY=<query id>
+REACT_APP_DUNE_QUERY_EVENTS=<query id>
+```
+
+CRA bakes these into the client bundle at build time. For a public
+deployment, prefer a backend proxy that holds the key server-side.
+
+### 2. Expected query columns
+
+| Query | Columns the UI expects |
+|-------|------------------------|
+| Vaults | `id, name, asset, tvl, apy, apy_7d, apy_30d, risk, utilization, change_24h, depositors, total_yield_paid, category, color, strategies` |
+| TVL history | `day, tvl` |
+| Events | `id, type, vault, asset, amount, ts` |
+
+If your query returns different column names, edit
+`src/utils/dune-queries.js` — each adapter is a small mapper.
+
+### 3. Dune MCP (Claude Code)
+
+Already wired in this workspace:
+
+```
+claude mcp add --scope user --transport http dune \
+  https://api.dune.com/mcp/v1 \
+  --header "x-dune-api-key: <YOUR_KEY>"
+```
+
+After restarting Claude Code, MCP tools become available for searching
+and running queries directly from the assistant.
+
+---
+
 ## Links
 
 - Website: https://concrete.xyz

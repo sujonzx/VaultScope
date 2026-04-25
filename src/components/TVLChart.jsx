@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { generateTVLHistory } from '../utils/data';
+import { generateTVLHistory, formatUSD } from '../utils/data';
 
 const RANGES = [
   { label: '7D', days: 7 },
@@ -23,10 +23,14 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function TVLChart() {
+export default function TVLChart({ history, totalTVL }) {
   const [range, setRange] = useState(30);
-  const allData = generateTVLHistory(90);
+  const allData = (history && history.length) ? history : generateTVLHistory(90);
   const data = allData.slice(-range);
+  // If TVL series values look small (<1e6) treat as already-millions; else scale.
+  const looksMillions = data.length && data[data.length - 1].tvl < 1e6;
+  const display = looksMillions ? data : data.map(d => ({ ...d, tvl: Math.round(d.tvl / 1e6 * 10) / 10 }));
+  const headlineTVL = totalTVL ? formatUSD(totalTVL) : '$847M';
 
   return (
     <div style={{
@@ -40,7 +44,7 @@ export default function TVLChart() {
             Total Value Locked
           </div>
           <div style={{ fontSize: 22, fontWeight: 600, fontFamily: 'var(--font-display)', letterSpacing: '-0.03em' }}>
-            $847M
+            {headlineTVL}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
@@ -57,7 +61,7 @@ export default function TVLChart() {
         </div>
       </div>
       <ResponsiveContainer width="100%" height={180}>
-        <AreaChart data={data} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+        <AreaChart data={display} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
           <defs>
             <linearGradient id="tvlGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#22c55e" stopOpacity={0.15} />
@@ -67,7 +71,7 @@ export default function TVLChart() {
           <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.04)" />
           <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#555350', fontFamily: 'DM Mono' }}
             tickLine={false} axisLine={false}
-            interval={Math.floor(data.length / 5)} />
+            interval={Math.floor(display.length / 5)} />
           <YAxis tick={{ fontSize: 10, fill: '#555350', fontFamily: 'DM Mono' }}
             tickLine={false} axisLine={false}
             tickFormatter={v => `$${v}M`} domain={['auto', 'auto']} />

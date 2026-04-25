@@ -1,6 +1,5 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
-import { MOCK_VAULTS } from '../utils/data';
 
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
@@ -19,8 +18,8 @@ const CustomTooltip = ({ active, payload }) => {
   );
 };
 
-export default function APYChart() {
-  const data = MOCK_VAULTS.map(v => ({ name: v.asset, apy: v.apy, apy7d: v.apy7d, color: v.color }));
+export default function APYChart({ vaults = [] }) {
+  const data = vaults.map(v => ({ name: v.asset, apy: v.apy, apy7d: v.apy7d, color: v.color }));
 
   return (
     <div style={{

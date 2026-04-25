@@ -96,9 +96,9 @@ export default function Header() {
   return (
     <header style={styles.header}>
       <a href="https://concrete.xyz" target="_blank" rel="noopener noreferrer" style={styles.logo}>
-        <div style={styles.logoMark}>C</div>
-        <span style={styles.logoText}>Concrete</span>
-        <span style={styles.logoSub}>Analytics</span>
+        <div style={styles.logoMark}>V</div>
+        <span style={styles.logoText}>VaultScope</span>
+        <span style={styles.logoSub}>Concrete · Dune</span>
       </a>
       <div style={styles.right}>
         <div style={styles.liveDot}>

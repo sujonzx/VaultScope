@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateEvents, formatUSD, formatTime } from '../utils/data';
+import { formatUSD, formatTime, generateEvents } from '../utils/data';
 
 const TYPE_ICONS = {
   'Deposit': '↓',
@@ -14,10 +14,16 @@ const TYPE_COLORS = {
   'Rebalance': '#60a5fa',
 };
 
-export default function EventFeed() {
-  const [events, setEvents] = useState(() => generateEvents());
+export default function EventFeed({ events: incoming, live = true }) {
+  const initial = (incoming && incoming.length) ? incoming : generateEvents();
+  const [events, setEvents] = useState(initial);
 
   useEffect(() => {
+    if (incoming && incoming.length) setEvents(incoming);
+  }, [incoming]);
+
+  useEffect(() => {
+    if (!live) return undefined;
     const interval = setInterval(() => {
       setEvents(prev => {
         const fresh = generateEvents();
@@ -25,7 +31,7 @@ export default function EventFeed() {
       });
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [live]);
 
   return (
     <div style={{

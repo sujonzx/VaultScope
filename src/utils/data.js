@@ -1,3 +1,14 @@
+import {
+  duneEnabled,
+  getLatestResult,
+} from './dune';
+import {
+  QUERIES,
+  mapVaultRows,
+  mapTvlHistoryRows,
+  mapEventRows,
+} from './dune-queries';
+
 // DeFiLlama API - Free, no key needed
 const DEFILLAMA_BASE = 'https://api.llama.fi';
 const CONCRETE_SLUG = 'concrete';
@@ -150,4 +161,45 @@ export function formatTime(minutesAgo) {
   if (minutesAgo < 60) return minutesAgo + 'm ago';
   if (minutesAgo < 1440) return Math.floor(minutesAgo / 60) + 'h ago';
   return Math.floor(minutesAgo / 1440) + 'd ago';
+}
+
+// Orchestrates Dune fetches with mock fallbacks. Returns whatever is
+// available — partial Dune data + partial mock is fine. The `sources`
+// object reports which channel served each slice for the UI badge.
+export async function loadDashboardData() {
+  const result = {
+    vaults: MOCK_VAULTS,
+    tvlHistory: generateTVLHistory(90),
+    events: generateEvents(),
+    sources: { vaults: 'mock', tvlHistory: 'mock', events: 'mock' },
+    duneEnabled: duneEnabled(),
+  };
+
+  if (!duneEnabled()) return result;
+
+  const [vaultRows, tvlRows, eventRows] = await Promise.all([
+    QUERIES.vaults ? getLatestResult(QUERIES.vaults) : Promise.resolve(null),
+    QUERIES.tvlHistory ? getLatestResult(QUERIES.tvlHistory) : Promise.resolve(null),
+    QUERIES.events ? getLatestResult(QUERIES.events) : Promise.resolve(null),
+  ]);
+
+  const vaults = mapVaultRows(vaultRows);
+  if (vaults && vaults.length) {
+    result.vaults = vaults;
+    result.sources.vaults = 'dune';
+  }
+
+  const tvl = mapTvlHistoryRows(tvlRows);
+  if (tvl && tvl.length) {
+    result.tvlHistory = tvl;
+    result.sources.tvlHistory = 'dune';
+  }
+
+  const events = mapEventRows(eventRows);
+  if (events && events.length) {
+    result.events = events;
+    result.sources.events = 'dune';
+  }
+
+  return result;
 }

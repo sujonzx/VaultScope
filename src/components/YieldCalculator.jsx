@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { MOCK_VAULTS, formatUSD } from '../utils/data';
 
-export default function YieldCalculator() {
+export default function YieldCalculator({ vaults }) {
+  const list = (vaults && vaults.length) ? vaults : MOCK_VAULTS;
   const [amount, setAmount] = useState(10000);
-  const [vaultId, setVaultId] = useState('usdt-earn');
+  const [vaultId, setVaultId] = useState(list[0]?.id || 'usdt-earn');
   const [period, setPeriod] = useState(365);
 
-  const vault = MOCK_VAULTS.find(v => v.id === vaultId);
+  const vault = list.find(v => v.id === vaultId) || list[0];
   const apy = vault?.apy || 10;
   const daily = amount * (apy / 100) / 365;
   const periodYield = daily * period;
@@ -56,7 +57,7 @@ export default function YieldCalculator() {
           <select value={vaultId} onChange={e => setVaultId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}
             onFocus={e => e.target.style.borderColor = 'var(--green)'}
             onBlur={e => e.target.style.borderColor = 'var(--border)'}>
-            {MOCK_VAULTS.map(v => (
+            {list.map(v => (
               <option key={v.id} value={v.id}>{v.name} — {v.apy.toFixed(1)}% APY</option>
             ))}
           </select>
